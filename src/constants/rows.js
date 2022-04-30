@@ -1,0 +1,1 @@
+export const rowLetters = ["a", "b", "c", "d", "e", "f", "g", "h"];
