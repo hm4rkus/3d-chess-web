@@ -23,29 +23,38 @@ const commonMaterialProps = {
   metalness: 0,
   roughness: 0.2,
   opacity: 1,
-  transparent: true
+  transparent: true,
 };
 
+/**
+ * Chess board component.
+ * @param {object} board Board state.
+ * @param {array} possibleMoves Board state.
+ * @param {function} setSelectedObject Set selected piece function.
+ * @param {function} moveTo Move piece to function.
+ * @param {boolean} isMatchOver Whether the match is over.
+ * @param {boolean} isWhiteTurn Whether it is white's turn.
+ */
 export const ChessBoard = ({
   board,
   possibleMoves,
   setSelectedObject,
   moveTo,
-  matchOver,
-  whiteTurn
+  isMatchOver,
+  isWhiteTurn,
 }) => {
   const [wColorT, wDisplT, wNormalT, wRoughT] = useTexture([
     whiteTextureRoot + "color.jpg",
     whiteTextureRoot + "displacement.jpg",
     whiteTextureRoot + "normal.jpg",
-    whiteTextureRoot + "roughness.jpg"
+    whiteTextureRoot + "roughness.jpg",
   ]);
 
   const [bColorT, bDisplT, bNormalT, bRoughT] = useTexture([
     blackTextureRoot + "color.jpg",
     blackTextureRoot + "displacement.jpg",
     blackTextureRoot + "normal.jpg",
-    blackTextureRoot + "roughness.jpg"
+    blackTextureRoot + "roughness.jpg",
   ]);
 
   const moveToWrapper = ([j, i]) => {
@@ -103,7 +112,7 @@ export const ChessBoard = ({
           </mesh>
         );
       })}
-
+      {/* Pieces */}
       {new Array(64).fill(0).map((a, index) => {
         let possible = false;
         const i = Math.floor(index / 8);
@@ -128,21 +137,22 @@ export const ChessBoard = ({
               onSelect={({ ref }) => {
                 if (
                   possible &&
-                  ((piece.color === "b" && whiteTurn) ||
-                    (piece.color === "w" && !whiteTurn))
+                  ((piece.color === "b" && isWhiteTurn) ||
+                    (piece.color === "w" && !isWhiteTurn))
                 ) {
                   moveToWrapper([j, i]);
                 } else if (
-                  !matchOver &&
-                  ((piece.color === "w" && whiteTurn) ||
-                    (piece.color === "b" && !whiteTurn))
+                  !isMatchOver &&
+                  ((piece.color === "w" && isWhiteTurn) ||
+                    (piece.color === "b" && !isWhiteTurn))
                 )
                   setSelectedObject([{ ref: ref, position: [j, i] }]);
               }}
             />
           );
       })}
-
+      {/* Possible moves */}
+      return (
       <group>
         {[0, 1, 2, 3, 4, 5, 6, 7].map((i) =>
           [0, 1, 2, 3, 4, 5, 6, 7].map((j) => {
@@ -159,6 +169,7 @@ export const ChessBoard = ({
               <group key={i * 8 + j}>
                 {possible &&
                   (hasPiece ? (
+                    // Possible move with enemy piece.
                     [0, 1, 2, 3].map((index) => {
                       let position = [i - 3.5, 0.11, j - 3.5];
                       switch (index) {
@@ -195,6 +206,7 @@ export const ChessBoard = ({
                       );
                     })
                   ) : (
+                    // Possible move without enemy piece.
                     <mesh
                       position={[i - 3.5, 0.1, j - 3.5]}
                       scale={[1, 0.1, 1]}
@@ -210,32 +222,31 @@ export const ChessBoard = ({
                   onClick={() => possible && moveToWrapper([j, i])}
                 >
                   <boxBufferGeometry />
-
-                  {(i + j) % 2 === 0 ? (
-                    <meshStandardMaterial
-                      color={whiteColor}
-                      roughnessMap={wRoughT}
-                      normalMap={wNormalT}
-                      map={wColorT}
-                      bumpMap={wDisplT}
-                      {...commonMaterialProps}
-                    />
-                  ) : (
-                    <meshStandardMaterial
-                      color={blackColor}
-                      roughnessMap={bRoughT}
-                      normalMap={bNormalT}
-                      map={bColorT}
-                      bumpMap={bDisplT}
-                      {...commonMaterialProps}
-                    />
-                  )}
+                  <meshStandardMaterial
+                    {...((i + j) % 2 === 0
+                      ? {
+                          color: whiteColor,
+                          roughnessMap: wRoughT,
+                          normalMap: wNormalT,
+                          map: wColorT,
+                          bumpMap: wDisplT,
+                        }
+                      : {
+                          color: blackColor,
+                          roughnessMap: bRoughT,
+                          normalMap: bNormalT,
+                          map: bColorT,
+                          bumpMap: bDisplT,
+                        })}
+                    {...commonMaterialProps}
+                  />
                 </mesh>
               </group>
             );
           })
         )}
       </group>
+      )
     </>
   );
 };

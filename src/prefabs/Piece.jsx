@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from "react";
+
+// Three
 import { Vector3 } from "three";
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "react-three-fiber";
@@ -14,6 +16,13 @@ const pieceBlackRotation = [Math.PI / 2, 0, Math.PI / 2];
 const pieceWhiteColor = "rgb(200,200,200)";
 const pieceBlackColor = "rgb(55,55,55)";
 
+/**
+ * Piece Component.
+ * @param {string} type piece type.
+ * @param {[number, number]} position piece position.
+ * @param {string} color piece color.
+ * @param {function} onSelect on piece select callback.
+ */
 export const Piece = ({ type, position, color, onSelect }) => {
   const { nodes } = useGLTF(modelRoot + pieceTypeToFile[type]);
 
@@ -24,7 +33,7 @@ export const Piece = ({ type, position, color, onSelect }) => {
 
   const isWhitePiece = color === "w";
 
-  // Fist render
+  // Fist render.
   useEffect(() => {
     if (isFirstRender.current) {
       pieceRef.current.position.set(position[2], position[1], position[0]);
@@ -32,7 +41,7 @@ export const Piece = ({ type, position, color, onSelect }) => {
     }
   }, [isFirstRender, position]);
 
-  // Lerp position
+  // Lerp position.
   useEffect(() => {
     if (!isFirstRender.current) {
       targetPositionRef.current = position;
@@ -40,7 +49,7 @@ export const Piece = ({ type, position, color, onSelect }) => {
     }
   }, [position, targetPositionRef]);
 
-  // Actual Lerp
+  // Actual Lerp.
   useFrame(() => {
     if (isLerpingRef.current) {
       const currentPos = pieceRef.current.position;
@@ -65,7 +74,7 @@ export const Piece = ({ type, position, color, onSelect }) => {
     }
   });
 
-  // Activate shadows
+  // Activate shadows.
   useEffect(() => {
     if (nodes?.chessKitExport) {
       nodes.chessKitExport.traverse((node) => {

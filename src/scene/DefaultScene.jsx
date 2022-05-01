@@ -4,31 +4,41 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from "react";
 
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { ChessBoard } from "../prefabs/ChessBoard";
-import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass";
+// Three
 import { extend } from "react-three-fiber";
+import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass";
+import { EffectComposer, Outline } from "@react-three/postprocessing";
+
+// Prefabs
+import { ChessBoard } from "../prefabs/ChessBoard";
+import { Skybox } from "../prefabs/SkyBox";
+
+// Chess library.
 import { Chess } from "chess.js";
+
+// Utils
 import {
   getCoordenatePositions,
-  getNotatedPosition
+  getNotatedPosition,
 } from "../utils/notatedPosition";
-import { EffectComposer, Outline } from "@react-three/postprocessing";
-import { Skybox } from "../prefabs/SkyBox";
 
 extend({ OutlinePass });
 
 export const DefaultScene = () => {
+  // Chess instance.
   const chessRef = useRef(new Chess());
 
+  // Application state.
   const [selected, setSelected] = useState([]);
   const [possibleMoves, setPossibleMoves] = useState([]);
-  const [whiteTurn, setWhiteTurn] = useState(true);
-  const [matchOver, setMatchOver] = useState(false);
+  const [isWhiteTurn, setIsWhiteTurn] = useState(true);
+  const [isMatchOver, setIsMatchOver] = useState(false);
 
+  // Initial board state.
   const initialStateBoard = useMemo(() => {
     const board = chessRef.current.board();
 
@@ -44,6 +54,11 @@ export const DefaultScene = () => {
 
   const [board, setBoard] = useState(initialStateBoard);
 
+  /**
+   * Update board state.
+   * @param {[number, number]} targetPosition Position to move to.
+   * @param {string} pieceId Id of the piece to move.
+   */
   const updateBoard = useCallback(
     (targetPosition, id) => {
       const chess = chessRef.current;
@@ -81,14 +96,18 @@ export const DefaultScene = () => {
         chess.in_threefold_repetition() ||
         chess.insufficient_material()
       ) {
-        setMatchOver(true);
+        setIsMatchOver(true);
       } else {
-        setWhiteTurn((turn) => !turn);
+        setIsWhiteTurn((turn) => !turn);
       }
     },
     [setBoard]
   );
 
+  /**
+   * Move seleted piece to a specific position.
+   * @param {[number, number]} position Position to move to.
+   */
   const moveSelectedPieceTo = useCallback(
     (position) => {
       const chess = chessRef.current;
@@ -103,7 +122,7 @@ export const DefaultScene = () => {
 
       chess.move({
         from: originNPosition,
-        to: targetNPosition
+        to: targetNPosition,
       });
 
       updateBoard(targetPosition, movedPieceId);
@@ -111,12 +130,13 @@ export const DefaultScene = () => {
     [updateBoard, chessRef, board, selected]
   );
 
+  // Updates possible move positions when a piece is selected or unselected.
   useEffect(() => {
     if (selected.length !== 0) {
       const selectedPosition = getNotatedPosition(selected[0].position);
       const possibleMoves = chessRef.current.moves({
         square: selectedPosition,
-        verbose: true
+        verbose: true,
       });
 
       setPossibleMoves(
@@ -127,6 +147,7 @@ export const DefaultScene = () => {
 
   return (
     <>
+      {/** Outline Effect fot the selected piece */}
       <EffectComposer multisampling={8}>
         <Outline
           selection={
@@ -135,13 +156,16 @@ export const DefaultScene = () => {
           edgeStrength={10}
         />
       </EffectComposer>
-
+      {/** Skybox */}
       <Skybox />
+      {/** Lighting */}
       <hemisphereLight color={"white"} groundColor={"brown"} intensity={0.4} />
-      <OrbitControls />
-      <PerspectiveCamera makeDefault position={[0, 10, 10]} />
       <directionalLight position={[2, 10, -10]} castShadow />
       <ambientLight intensity={0.4} />
+      {/** Camera and camera controls*/}
+      <PerspectiveCamera makeDefault position={[0, 10, 10]} />
+      <OrbitControls />
+      {/**Chess Board*/}
       <Suspense fallback={null}>
         <ChessBoard
           board={board}
@@ -149,8 +173,8 @@ export const DefaultScene = () => {
           selected={selected}
           setSelectedObject={setSelected}
           moveTo={moveSelectedPieceTo}
-          whiteTurn={whiteTurn}
-          matchOver={matchOver}
+          isWhiteTurn={isWhiteTurn}
+          isMatchOver={isMatchOver}
         />
       </Suspense>
     </>
