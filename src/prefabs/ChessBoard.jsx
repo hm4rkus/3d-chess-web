@@ -113,7 +113,7 @@ export const ChessBoard = ({
         );
       })}
       {/* Pieces */}
-      {new Array(64).fill(0).map((a, index) => {
+      {new Array(64).fill(0).map((_, index) => {
         let possible = false;
         const i = Math.floor(index / 8);
         const j = index % 8;
@@ -126,7 +126,7 @@ export const ChessBoard = ({
           }
         }
 
-        if (piece)
+        if (piece) {
           return (
             <Piece
               key={piece.id}
@@ -150,6 +150,8 @@ export const ChessBoard = ({
               }}
             />
           );
+        }
+        return undefined;
       })}
       {/* Possible moves */}
       <group>
